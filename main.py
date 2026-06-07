@@ -5,8 +5,8 @@ import random
 import glob
 import smtplib
 
-MY_EMAIL = os.environ.get("EMAIL")
-MY_PASSWORD = os.environ.get("PASSWORD")
+EMAIL = os.environ.get("EMAIL")
+PASSWORD = os.environ.get("PASSWORD")
 
 
 def fetch_letter():
