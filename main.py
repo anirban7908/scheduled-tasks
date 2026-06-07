@@ -1,38 +1,85 @@
-# To run and test the code you need to update 4 places:
-# 1. Change MY_EMAIL/MY_PASSWORD to your own details.
-# 2. Go to your email provider and make it allow less secure apps.
-# 3. Update the SMTP ADDRESS to match your email provider.
-# 4. Update birthdays.csv to contain today's month and day.
-# See the solution video in the 100 Days of Python Course for explainations.
-
-
-from datetime import datetime
 import pandas
+import datetime as dt
 import random
+import glob
 import smtplib
-import os
 
-# import os and use it to get the Github repository secrets
-MY_EMAIL = os.environ.get("MY_EMAIL")
-MY_PASSWORD = os.environ.get("MY_PASSWORD")
+EMAIL = "Put the From emial[your email]"
+PASSWORD = "Put the password [Your password]"
 
-today = datetime.now()
-today_tuple = (today.month, today.day)
 
-data = pandas.read_csv("birthdays.csv")
-birthdays_dict = {(data_row["month"], data_row["day"])                  : data_row for (index, data_row) in data.iterrows()}
-if today_tuple in birthdays_dict:
-    birthday_person = birthdays_dict[today_tuple]
-    file_path = f"letter_templates/letter_{random.randint(1, 3)}.txt"
-    with open(file_path) as letter_file:
-        contents = letter_file.read()
-        contents = contents.replace("[NAME]", birthday_person["name"])
+def fetch_letter():
+    letters = glob.glob("letter_templates/*.txt")
+    if letters:
+        chosen_letter = random.choice(letters)
 
-    with smtplib.SMTP("YOUR EMAIL PROVIDER SMTP SERVER ADDRESS") as connection:
-        connection.starttls()
-        connection.login(MY_EMAIL, MY_PASSWORD)
-        connection.sendmail(
-            from_addr=MY_EMAIL,
-            to_addrs=birthday_person["email"],
-            msg=f"Subject:Happy Birthday!\n\n{contents}"
-        )
+    return chosen_letter
+
+
+def create_letter(letter, details):
+    with open(letter, "r") as file:
+        letter_content = file.read()
+
+    content = letter_content.replace("[NAME]", details["name"])
+
+    return content
+
+
+def send_email(email, letter):
+    try:
+        with smtplib.SMTP("smtp.gmail.com") as conn:
+            conn.starttls()
+            conn.login(EMAIL, PASSWORD)
+            conn.sendmail(
+                from_addr=EMAIL,
+                to_addrs=email,
+                msg=f"Subject: Happy Birthday! \n\n {letter}",
+            )
+        return {"status": True, "message": "Email sent successfully"}
+    except smtplib.SMTPException as e:
+        return {
+            "status": False,
+            "message": "Email Not sent",
+            "error": f"Email delivery failed (SMTP error): {e}",
+        }
+    except OSError as e:
+        return {
+            "status": False,
+            "message": "Email Not sent",
+            "error": f"Network connection failed (Server unreachable): {e}",
+        }
+
+
+# Read Data
+bday_data = pandas.read_csv("birthdays.csv")
+bday_dict = bday_data.to_dict(orient="records")
+
+# 2. Get Current Date
+today = dt.datetime.now()
+current_month = today.month
+current_day = today.day
+
+# 3. Find Today's Birthday Persons
+bday_persons = []
+for data in bday_dict:
+    if current_month == int(data["month"]) and current_day == int(data["day"]):
+        details = {
+            "name": data["name"],
+            "email": data["email"],
+        }
+        bday_persons.append(details)
+
+# 4. Process and Send Letters
+if bday_persons:
+    for person in bday_persons:
+        letter_path = fetch_letter()
+        print(letter_path)
+        email = person["email"]
+        if letter_path:
+            final_letter = create_letter(letter_path, person)
+
+            print(f"--- Sending to {person['name']} ---")
+
+            sending = send_email(email, final_letter)
+
+            print(sending)
