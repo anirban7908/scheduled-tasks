@@ -75,13 +75,8 @@ for data in bday_dict:
 if bday_persons:
     for person in bday_persons:
         letter_path = fetch_letter()
-        print(letter_path)
         email = person["email"]
+        print(email)
         if letter_path:
             final_letter = create_letter(letter_path, person)
-
-            print(f"--- Sending to {person['name']} ---")
-
             sending = send_email(email, final_letter)
-
-            print(sending)
