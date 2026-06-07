@@ -76,7 +76,6 @@ if bday_persons:
     for person in bday_persons:
         letter_path = fetch_letter()
         email = person["email"]
-        print(email)
         if letter_path:
             final_letter = create_letter(letter_path, person)
             sending = send_email(email, final_letter)
