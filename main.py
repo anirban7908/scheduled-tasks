@@ -27,6 +27,7 @@ def create_letter(letter, details):
 
 
 def send_email(email, letter):
+    global EMAIL, PASSWORD 
     try:
         with smtplib.SMTP("smtp.gmail.com") as conn:
             conn.starttls()
