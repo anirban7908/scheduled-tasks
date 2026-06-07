@@ -1,11 +1,12 @@
+import os
 import pandas
 import datetime as dt
 import random
 import glob
 import smtplib
 
-EMAIL = "Put the From emial[your email]"
-PASSWORD = "Put the password [Your password]"
+MY_EMAIL = os.environ.get("EMAIL")
+MY_PASSWORD = os.environ.get("PASSWORD")
 
 
 def fetch_letter():
